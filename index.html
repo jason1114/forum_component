@@ -1,13 +1,116 @@
 ---
 layout: default
-title: Your New Jekyll Site
+title: Tutorial for writing a forum component
 ---
 
-<div id="home">
-  <h1>Blog Posts</h1>
-  <ul class="posts">
-    {% for post in site.posts %}
-      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
-    {% endfor %}
-  </ul>
-</div>
+<section>
+<h1>Step 1</h1>
+<p>create a new folder, for example: 
+</p>
+<p>
+<b>forum_app/forum/plugins/forum/components/mycomponent</b>, 
+</p>
+<p>
+  So the component's name is "mycomponent". Create <b>index.coffee</b> and <b>index.html</b> in this folder. The <b>index.coffee</b> is a component config file and the <b>index.html</b> is a component view file. We will get started with a simplest example.
+</p>
+</section>
+<section>
+<h1>Step 2</h1>
+The <b>index.coffee</b> should be like this:
+{% highlight coffeescript %}
+define([], ()->
+  {
+    # this name is only used in the 'Compose' button dropdown menu
+    showName: 'MyCom'
+    # icon in 'Compose' button dropdown menu
+    icon: "icon-star"
+    # declare models and their fields used by this component
+    # some fields are always available and you don't need to
+    # write them down. They are defined in forum/index.coffee
+    # such as "userid", "created_at", "timestamp"
+    models: [
+      {name: "MyModel", fields: ["name", "text"]}
+    ]
+    # one of the models should be treated as topicModel
+    topicModel:  "MyModel"
+    ###
+       this callback will be called when the change_display
+       invoked and view changed to current component
+       the scope refers to a private component scope
+       not the global Forum scope
+    ###
+    onViewLoaded: ($scope) ->
+      # do something when display changes to current topic
+      $scope.name = "Jason"
+      return
+    ###
+      this callback will be called when the forum plugin
+      is loaded, you can do some init operation for
+      this component
+      the scope refers to a private component scope
+    ###
+    onForumLoaded: ($scope) ->
+      # do something when forum app loaded
+      $scope.sayHello = ()->
+        alert "Hello, #{$scope.name}"
+      return
+
+    # form fields shown when creating or editing
+    # the component instance, They are usually related
+    # to the topic model's fields
+    formConfig: {
+      fields: {
+        name: 
+          type: 'input'
+          label: 'Name'
+        text:
+          type: 'editor'
+          label: 'Description'
+      }
+    }
+    # this option is used to auto-generate
+    # html of update modal and create modal
+    view: {
+      createModal:{
+        title: 'Add MyComponent'
+        cssClass: 'mycomponent_post'
+      }
+      updateModal:{
+        title: 'Edit MyComponent'
+        cssClass: 'update_mycomponent'
+      }
+    }
+  }
+)
+###
+  what's inside the $scope?
+  displayed_topic: instance of current topic model
+
+  these variables are available in onForumLoaded and onViewLoaded's $scope
+###
+{% endhighlight %}
+</section>
+<section>
+<h1>Step 3</h1>
+The <b>index.html</b> should be like this:
+{% highlight html %}
+<p>Hello, this is {% raw %}{{componentScope['mycomponent'].name}}{% endraw %}</p>
+<input type="text" ng-model="componentScope['mycomponent'].name">
+<button ng-click="componentScope['mycomponent'].sayHello()">Say hello</button>
+{% endhighlight %}
+</section>
+<section>
+<h1>Step 4</h1>
+<p>Add this component to <b>forum_app/forum/plugins/forum/components/components_loader.coffee</b></p>
+<p>Add the component name/folder name to the <b>loadedComponents</b> array:</p>
+{% highlight coffeescript %}
+# configure new component here
+# component name defined here must be the same as 
+# the component's floder's name
+
+loadedComponents = [
+  "mycomponent"
+  "todolist"
+]
+{% endhighlight %}
+</section>
